@@ -15,6 +15,7 @@ Student ID:
 
 
 import random, util, math
+import sys
 
 import numpy as np
 
@@ -111,9 +112,36 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
             Your minimax agent with alpha-beta pruning (question 2)
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actions = gameState.getLegalActions()
+        actions_gain = []
+        for action in actions:
+            actions_gain.append(self.min_value(self.play(gameState, action), 1, float('-inf'), float('inf')))
+        max_action_idx = np.argmax(actions_gain)
+        return actions[max_action_idx]
 
+    def min_value(self, gameState: GameState, cur_depth, alpha, beta):
+        if gameState.is_terminal() or cur_depth >= self.depth:
+            return self.evaluationFunction(gameState)
+        min_val = float('inf')
+        for action in gameState.getLegalActions():
+            cur_gain = self.max_value(self.play(gameState, action), alpha=alpha, beta=beta, cur_depth=cur_depth + 1)
+            min_val = min(cur_gain, min_val)
+            if cur_gain < alpha:
+                return cur_gain
+            beta = min(cur_gain, beta)
+        return min_val
+
+    def max_value(self, gameState: GameState, cur_depth, alpha, beta):
+        if gameState.is_terminal() or cur_depth >= self.depth:
+            return self.evaluationFunction(gameState)
+        max_val = float('-inf')
+        for action in gameState.getLegalActions():
+            cur_gain = self.min_value(self.play(gameState, action), alpha=alpha, beta=beta, cur_depth=cur_depth + 1)
+            max_val = max(cur_gain, max_val)
+            if cur_gain > beta:
+                return cur_gain
+            alpha = max(cur_gain, alpha)
+        return max_val
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
