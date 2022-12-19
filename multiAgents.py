@@ -16,6 +16,10 @@ Student ID:
 
 import random, util, math
 
+import numpy as np
+
+import gameUtil
+from connect4 import GameState
 from connect4 import Agent
 
 
@@ -24,6 +28,7 @@ def scoreEvaluationFunction(currentGameState):
     This default evaluation function just returns the score of the state.
     """
     return currentGameState.getScore()
+
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -39,15 +44,20 @@ class MultiAgentSearchAgent(Agent):
     only partially specified, and designed to be extended.  Agent is another abstract class.
     """
 
-    def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
-        self.index = 1 # agent is always index 1
+    def __init__(self, evalFn='scoreEvaluationFunction', depth='2'):
+        self.index = 1  # agent is always index 1
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
+
+    @staticmethod
+    def play(gameState: GameState, action: int) -> GameState:
+        next_state = gameState.generateSuccessor(gameState.get_piece_player(), action)
+        next_state.switch_turn(next_state.turn)
+        return next_state
 
 class BestRandom(MultiAgentSearchAgent):
 
     def getAction(self, gameState):
-
         return gameState.pick_best_move()
 
 
@@ -56,7 +66,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     Your minimax agent (question 1)
     """
 
-    def getAction(self, gameState):
+    def getAction(self, gameState: GameState):
         """
         Returns the minimax action from the current gameState using self.depth
         and self.evaluationFunction.
@@ -79,8 +89,21 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Return whether or not that state is terminal
         """
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actions = gameState.getLegalActions()
+        actions_gain = []
+        for action in actions:
+            actions_gain.append(self.min_max_value(self.play(gameState, action), 1))
+        max_action_idx = np.argmax(actions_gain)
+        return actions[max_action_idx]
+
+    def min_max_value(self, gameState: GameState, cur_depth):
+        if gameState.is_terminal() or cur_depth >= self.depth:
+            return self.evaluationFunction(gameState)
+        func = min if gameState.turn == 0 else max
+        actions_gain = [self.min_max_value(self.play(gameState, action), cur_depth=cur_depth + 1)
+                        for action in gameState.getLegalActions()]
+        chosen_gain = func(actions_gain)
+        return chosen_gain
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -90,6 +113,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
