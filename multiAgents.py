@@ -143,6 +143,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             alpha = max(cur_gain, alpha)
         return max_val
 
+
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 3)
@@ -152,5 +153,19 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         """
         Returns the expectimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actions = gameState.getLegalActions()
+        actions_gain = []
+        for action in actions:
+            actions_gain.append(self.exp_max_value(self.play(gameState, action), 1))
+        max_action_idx = np.argmax(actions_gain)
+        return actions[max_action_idx]
+
+    def exp_max_value(self, gameState: GameState, cur_depth):
+        if gameState.is_terminal() or cur_depth >= self.depth:
+            return self.evaluationFunction(gameState)
+        func = np.mean if gameState.turn == 0 else max
+        actions_gain = [self.exp_max_value(self.play(gameState, action), cur_depth=cur_depth + 1)
+                        for action in gameState.getLegalActions()]
+        chosen_gain = func(actions_gain)
+        return chosen_gain
+
